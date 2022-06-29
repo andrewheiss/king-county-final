@@ -7,3 +7,9 @@
 **/*_files/*
 **/*_cache/*
 **/*.html
+
+# Miscellaneous
+*.~lock.*
+.DS_Store
+.dropbox
+Icon?
