@@ -2,3 +2,8 @@
 .Rproj.user
 .Rhistory
 .RData
+
+# R Markdown stuff
+**/*_files/*
+**/*_cache/*
+**/*.html

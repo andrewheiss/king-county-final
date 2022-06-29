@@ -1,0 +1,12 @@
+---
+title: "Question 2 methods report"
+date: "June 29, 2022"
+author:
+- name: Andrew Heiss
+  affiliation: Georgia State University
+- name: Meng Ye
+  affiliation: Georgia State University
+- name: June Mi Kang
+  affiliation: Georgia State University
+---
+
