@@ -176,13 +176,13 @@ Q2-C is formulated to further examine the impact of subsidized passes given thro
 
 * __Treatment Variable for \colorbox{purple!50}{Q2-A} and \colorbox{pink}{Q2-B}__
 \
-In analyze the research questions for Q2-A and Q2-B, we need to first identify the independent variable. Independent variable for both questions is the same--it is the different levels of incentives. Hence, we need a variable collapsed to display different levels of incentives, ranging from 0, $10, $15, $20, $30, $50, shorter passes, and subsidized annual pass.
+In analyze the research questions for Q2-A and Q2-B, we need to first identify the independent variable. Independent variable for both questions is the same--it is the different levels of incentives. Hence, we need a variable collapsed to display different levels of incentives, ranging from \$0, \$10, \$15, \$20, \$30, \$50, shorter passes, and subsidized annual pass.
 
-  + To achieve this, we first pulled the variable 'Initial Load' from the dataset _Registry_, displaying values of 0, $10, $15, $20, $30, $50, $70, Misc. Pass, Monthly Pass,Passport, Subsidized Annual Pass, and missing values (NAs). We also pulled the variable 'Study Card' from the same dataset, displaying the phases for the treatment.
+  + To achieve this, we first pulled the variable 'Initial Load' from the dataset _Registry_, displaying values of \$0, \$10, \$15, \$20, \$30, \$50, \$70, Misc. Pass, Monthly Pass,Passport, Subsidized Annual Pass, and missing values (NAs). We also pulled the variable 'Study Card' from the same dataset, displaying the phases for the treatment.
 
 * __Treatment Variable for \colorbox{teal!50}{Q2-C}__
 \
-The challenge for Q2-C was that we were unable to distinguish the control from from the treatment group since $10 given in regular ORCA LIFT is not differentiable from $10 control group in RCT. As previously described, we proceed by making an assumption that all individuals who received $10 in their initial load as the control group for Q2-C. Noting its limitations, this is an an attempt to observe the general patterns, magnitude, and direction of the coefficient to make an informed estimation about the effect of the RCT. For this control variable, we then pull any individuals with initial load of $10 from the Initial Load variable under the _Registry_ data.
+The challenge for Q2-C was that we were unable to distinguish the control from from the treatment group since \$10 given in regular ORCA LIFT is not differentiable from \$10 control group in RCT. As previously described, we proceed by making an assumption that all individuals who received \$10 in their initial load as the control group for Q2-C. Noting its limitations, this is an an attempt to observe the general patterns, magnitude, and direction of the coefficient to make an informed estimation about the effect of the RCT. For this control variable, we then pull any individuals with initial load of \$10 from the Initial Load variable under the _Registry_ data.
 \
 
 ### Dependent Variable Identification
@@ -214,10 +214,52 @@ While ACS data was primarily highlighted for the Question 1 of this data challen
 
 \newpage
 
-
 ## Data Processing Flow 
+
+* __Data Linking/Cleaning Strategies__
+
+First, we merged all these identified variables into a single file using the common variable of "card_id", connecting across the three datasets of _Registry_, _Sales_, and _Boardings_.
+
+One of the key challenges with cleaning the data was how to format the different levels of incentives. On the surface, they may seem as if in ordinal manner; however, the increments between values vary from one another, making it harder to compare. For instance, a jump from \$10 to \$15 dollar isn't quite the same as the jump from \$30 to the next closet value of \$50. Another challenge was conceptualizing how to order different types of passes. Hence, we have reduced these categories into the following groups to make a meaningful comparison across them: _Nothing, \$0, \$10, \>$10, shorter passes, and subsidized annual passes_
+
+
+## Results and Discussion
+
+In addition to several descriptive analyses, we performed inverse proability weighting (ipw) method for analyzing the effects of each treatment on the outcome variable.
+
+* __Outcome Variable for \colorbox{purple!50}{Q2-A}__
+\
+```{r Q2-A-1, fig.align = 'center', out.width = "70%", echo=FALSE}
+knitr::include_graphics("figures/model_q2a_1_comparisons.png")
+```
+   + We find a puzzling result--when compared to no incentives, each type of incentive causes a decrease in the probability/proportion of reloading 6 months after and beyond.
+   
+  + Similarly, our results show that differnet levels of incentives through the program yield unexpected causal impacts on amount loaded:
+   
+   
+```{r Q2-A-2, fig.align = 'center', out.width = "70%", echo=FALSE}
+knitr::include_graphics("figures/model_q2a_2_comparisons.png")
+```
+
+   + We see a similar pattern on the effects of different incentive levels on the card loadings. When calculated at the average count of card loadings, we see a reducing pattern compared to no incentive at all:
+   
+```{r Q2-A-3, fig.align = 'center', out.width = "70%", echo=FALSE}
+knitr::include_graphics("figures/model_q2a_3_comparisons.png")
+```
+
+* __Outcome Variable for \colorbox{pink}{Q2-B} and \colorbox{teal!50}{Q2-C}__ 
+\
+As demonstrated in a separate paper for coding, we did not yield meaningful results for Q2-B and Q2-C, despite numerous attempts to tackle the causal analysis.
 
 \newpage
 
-# References
+# Limitations 
+While we did extend our data analysis period to the entirety of the data to include as many observations as possible, the data inherently included the ridership data during the pandemic. Even though the pandemic has made a large impact across all cities in America, Seattle and hence therein King County was the place that experienced significant changes--including restrictions on business and having face-to-face classes. Such restrictions inherently reduced ridership of the primary population to King County Metro who used the transportation system to commute to work/schools on daily basis [@emc_research_king_2020]. Such impact from the pandemic naturally caused noises in our data that would have interfered with the analysis results.
 
+# Policy Implications
+Therefore, we encourage the KCM to further push with its evidence-based policy making initiatives. The pandemic is still evidently ongoing and impacting everyday lives, hence the riders' behaviors. The KCM has already implemented two RCTs in effort to investigate the causal impacts of the subsidies on ridership, in addition to this CISIL data challenge. Continued support for such commitment would allow KCM to gather data with increasingly reduced impacts from the pandemic, eventually allowing sufficient data to observe the impacts of its various incentive programs.
+\
+
+# References
+  
+  
