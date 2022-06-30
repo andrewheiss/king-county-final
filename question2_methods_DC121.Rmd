@@ -4,9 +4,13 @@ date: "June 29, 2022"
 author:
 - name: Andrew Heiss
   affiliation: Georgia State University
+- name: June Mi Jennifer Kang
+  affiliation: Georgia State University & Georgia Institute of Technology
 - name: Meng Ye
-  affiliation: Georgia State University
-- name: June Mi Kang
   affiliation: Georgia State University
 ---
 
+
+```{r ssa-logo, fig.align = 'center', out.width = "70%", fig.cap = "Simplified DAG for First Part of Question 2", echo=FALSE}
+knitr::include_graphics(here::here("figures", "dag1.drawio.png"))
+```
