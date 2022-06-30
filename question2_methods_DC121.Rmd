@@ -21,6 +21,7 @@ header-includes:
     - \usepackage{float}
     - \floatplacement{figure}{H}
 ---
+
 \onehalfspacing
 
 # Inverse Probability Weighting (IPW)
@@ -132,10 +133,10 @@ $$
 where:
 
 * $X$ refers to the continuous treatment variable
-* $C$ refers to the cofounding variables
+* $C$ refers to the confounding variables
 * Both functions refer stand for a probability density function with a variance of $\sigma^{2}$ mean of $\mu$, whereas...
 * Function in the numerator stands for the probability distribution with the treatment variable only, and
-* The denominator function stands for the probability distribution of treatment _with_the cofounders.
+* The denominator function stands for the probability distribution of treatment _with_the confounders.
 
 
 
@@ -149,16 +150,15 @@ Based on the background information provided by the KCM, we identified the follo
 	 + Effect of different levels of incentives* on re-enrollment in ORCA LIFT
 * Q2-C
 	+ Effects of subsidized passes through RCTs on these two outcome variables
-Note that the different levels of incentives here correspond to values such as no value, $10, $15, $20, $30, $50, and various passports. Also, question 2 itself primarily consists of Q2-A and Q2-B. 
 
-Q2-C is formulated to further examine the impact of subsidized passes given through RCTs. This particular question was ruled out from the main body of question 2, given the difficulty with identifying the control group in our data with non-participants getting $10 loaded onto their cards as well. Nonetheless, we attempt to tackle this question with the aim of analyzing the general pattern in the effect of the subsidized passes given through RCTs by treating all individuals with $10 as the controlled group.
+Note that the different levels of incentives here correspond to values such as no value, \$10, \$15, \$20, \$30, \$50, and various passports. Also, question 2 itself primarily consists of Q2-A and Q2-B. 
+
+Q2-C is formulated to further examine the impact of subsidized passes given through RCTs. This particular question was ruled out from the main body of question 2, given the difficulty with identifying the control group in our data with non-participants getting \$10 loaded onto their cards as well. Nonetheless, we attempt to tackle this question with the aim of analyzing the general pattern in the effect of the subsidized passes given through RCTs by treating all individuals with \$10 as the controlled group.
 
 
 ##  Variable Identification Strategies
 
 ## Data Processing Flow 
 
+
 # References
-
-
-
