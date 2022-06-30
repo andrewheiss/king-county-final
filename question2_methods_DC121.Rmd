@@ -20,29 +20,21 @@ header-includes:
     - \usepackage{setspace}
     - \usepackage{float}
     - \floatplacement{figure}{H}
-    - \usepackage{xcolor}
-    - \usepackage{parskip}
 ---
-\onehalfspacing
-\setlength{\parskip}{12pt}
 
+\onehalfspacing
 
 # Inverse Probability Weighting (IPW)
 
 ## Directed Acyclic Graphs (DAGs)
 
 In identifying the causal relationship between treatment and outcome, a particular type of causal graph called Directed Acyclic Graphs (DAGs) can become incredibly helpful. DAGs are instrumental in identifying confounding factors that bias the relationship between treatment and outcome variables by opening up backdoors [@pearl_book_2018]. For instance, refer to a simplified, hypothetical version of DAG for the first part of Question 2, asking the following question: what are the causal effects of different levels of incentives on longer-term ridership?
-\
 
-```{r load-libraries, echo=FALSE, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, fig.cap="A Simplified DAG for First Part of Q2"}
 library(tidyverse)  # ggplot, dplyr, %>%, and friends
 library(ggdag)  # Make DAGs with ggplot
 library(dagitty)  # Do basic DAG math
 library(broom)  # For converting model output to data frames
-```
-
-
-```{r dag, message=FALSE, warning=FALSE, fig.cap="A Simplified Demonstrative DAG for Q2 to Explain Confounders"}
 
 node_details <- tribble(
   ~name, ~label, ~x, ~y,
@@ -78,7 +70,7 @@ Q2_dag_tidy <- Q2_dag %>%
 
 status_colors <- c(exposure = "#F16F6F", outcome = "#00BABA", latent = "grey50")
 
-# Drawing DAG
+# Fancier graph
 ggplot(Q2_dag_tidy, aes(x = x, y = y, xend = xend, yend = yend)) +
   geom_dag_edges() +
   geom_dag_point(aes(color = status)) +
@@ -91,32 +83,27 @@ ggplot(Q2_dag_tidy, aes(x = x, y = y, xend = xend, yend = yend)) +
 
 ```
 
-
 ## Adjusting for Confounders
 
 Here, we use ggdag/daggity packages to draw a relatively simplified causal model to explain the causality behind longer-term ridership outcomes. For the first part of question 2, we are interested in the direct path between our treatment (different levels of incentives) and outcome (longer-term ridership). However, several potential backdoor confounders could have impacted both the treatment and outcome variables (degree of incentives &rarr; longer-term ridership). 
 
 First, we observe that the outcome variable of longer-term ridership is caused by various factors, ranging from innate backgrounds/demographic characteristics to educational attainment, income level, health conditions, and unmeasured confounders. The arrow in DAG indicates causality- for instance, one's demographic characteristics have a causal impact on the individual's level of educational attainment. Consequently, both the person's income level and health condition are determined by educational attainment and demographic characteristics. Together, these factors generate an unobservable confounder that causes a backdoor in the direct link between the treatment and outcome. Hence, to isolate the causal link between incentive and longer-term ridership, it is necessary to account for the confounders of income level, health condition, and unmeasured confounders in this relatively simplified model, as shown below:
 
-```{r adjust}
+```{r}
 adjustmentSets(Q2_dag)
 ```
-\newpage
 
 ## Dealing with Unmeasured Confounders
 
 Working with observational causal inference builds on a strong assumption that all unobservable factors that require adjustment are observable and measurable to be processed in the analysis. In an ideal world, we would be able to identify every single one of these backdoor paths *and* measure them to adjust for the biases in the analysis. However, in the real world, we do not have the ways to measure each of these background factors for every individual in our dataset. While some of the demographic information may be omitted for various reasons like privacy concerns, some of these factors also involve unmeasurable factors like reading people's minds to reveal their propensities, desires, likes, and dislikes. 
 
 As represented in the node of "unmeasured confounder," the actual DAG for Q2 is far more complicated and involves various factors that need to be accounted for yet are unmeasurable. For instance, one's gender could have a causal effect on a confounder of drinking behaviors [@wilsnack_gender_2018] which could directly impact one's eligibility for different degrees of incentives [@pollack_substance_2002], yet these patterns are unobservable with our data. Likewise, one's income level could also have yielded another unmeasured confounder of various life opportunities, which could directly impact the level of incentives _as well as_ the values and passes in the longer term. These unmeasured confounders are problematic as they interfere with isolating the causal effects by opening up backdoor paths. The relationship often gets further complicated with the causal links _between_ these unmeasured confounders (for instance, drinking behaviors and opportunities in life), thus making it harder to isolate causality. 
-\
 
 ### Using Inverse Probability Weighting (IPW)
 
 Therefore, it requires us to utilize other techniques to adjust for confounders and biases in the model. One of the most cited statistical methods to adjust for these confounders and close the backdoors is inverse probability weighting (IPW). IPW is a popular statistical technique to estimate causal effects by adjusting for the confounders through matching the assignment to treatment [@urdinez_causal_2021]. 
 
 In essence, IPW estimates propensity scores to weight each observation by how distinct they are. For instance, the individuals with a high probability of treatment yet do not receive one, _or_ individuals with a low probability of treatment still receive a higher weight. Under the context of our research question, IPW assigns high weights to the individuals who had the lowest chances of getting these ridership incentives based on their other characteristics but still received one _as well as_ to the people who were the most likely to receive these incentives yet did not receive one.
-
-\newpage
 
 ### Steps to IPW Method
 
@@ -141,7 +128,7 @@ While this method of IPW is a valuable tool to adjust for the confounding variab
 Hence, there is a need to modify the IPW model with binary treatments to incorporate the _continuous treatments_. Instead of the earlier formula used to display IPW for binary treatments, we instead use the following formula to incorporate the continuous treatment variable [@naimi_constructing_2014]:
 
 $$
-IPW_{continuous\ treatment} = \displaystyle \frac{f_{X}(X;\mu_{1},\sigma^{2}_1)}{f_{X \mid C}(X\mid C=c; \mu_{2}, \sigma^{2}_{2})}
+IPW = \displaystyle \frac{f_{X}(X;\mu_{1},\sigma^{2}_1)}{f_{X \mid C}(X\mid C=c; \mu_{2}, \sigma^{2}_{2})}
 $$
 where:
 
@@ -149,76 +136,29 @@ where:
 * $C$ refers to the confounding variables
 * Both functions refer stand for a probability density function with a variance of $\sigma^{2}$ mean of $\mu$, whereas...
 * Function in the numerator stands for the probability distribution with the treatment variable only, and
-* The denominator function stands for the probability distribution of treatment _with_ the confounders.
+* The denominator function stands for the probability distribution of treatment _with_the confounders.
 
 
-\newpage
 
 # Overall Research Design
 
 Based on the background information provided by the KCM, we identified the following three research focuses. We have deconstructed the primary research question into these three so that each focus has a treatment variable and an outcome variable for analysis.
 
-* __\colorbox{purple!50}{Q2-A}__
+* Q2-A
 	+ Effect of different levels of incentives* on longer-term loading of value and passes
-* __\colorbox{pink}{Q2-B}__
+* Q2-B
 	 + Effect of different levels of incentives* on re-enrollment in ORCA LIFT
-* __\colorbox{teal!50}{Q2-C}__
+* Q2-C
 	+ Effects of subsidized passes through RCTs on these two outcome variables
-Note that the different levels of incentives here correspond to values such as no value, $10, $15, $20, $30, $50, and various passports. Also, question 2 itself primarily consists of Q2-A and Q2-B. 
 
-Q2-C is formulated to further examine the impact of subsidized passes given through RCTs. This particular question was ruled out from the main body of question 2, given the difficulty with identifying the control group in our data with non-participants getting $10 loaded onto their cards as well. Nonetheless, we attempt to tackle this question with the aim of analyzing the general pattern in the effect of the subsidized passes given through RCTs by treating all individuals with $10 as the controlled group.
-\
+Note that the different levels of incentives here correspond to values such as no value, \$10, \$15, \$20, \$30, \$50, and various passports. Also, question 2 itself primarily consists of Q2-A and Q2-B. 
+
+Q2-C is formulated to further examine the impact of subsidized passes given through RCTs. This particular question was ruled out from the main body of question 2, given the difficulty with identifying the control group in our data with non-participants getting \$10 loaded onto their cards as well. Nonetheless, we attempt to tackle this question with the aim of analyzing the general pattern in the effect of the subsidized passes given through RCTs by treating all individuals with \$10 as the controlled group.
+
 
 ##  Variable Identification Strategies
 
-### Independent Variable Identification
-
-* __Treatment Variable for \colorbox{purple!50}{Q2-A} and \colorbox{pink}{Q2-B}__
-\
-In analyze the research questions for Q2-A and Q2-B, we need to first identify the independent variable. Independent variable for both questions is the same--it is the different levels of incentives. Hence, we need a variable collapsed to display different levels of incentives, ranging from 0, $10, $15, $20, $30, $50, shorter passes, and subsidized annual pass.
-
-  + To achieve this, we first pulled the variable 'Initial Load' from the dataset _Registry_, displaying values of 0, $10, $15, $20, $30, $50, $70, Misc. Pass, Monthly Pass,Passport, Subsidized Annual Pass, and missing values (NAs). We also pulled the variable 'Study Card' from the same dataset, displaying the phases for the treatment.
-
-* __Treatment Variable for \colorbox{teal!50}{Q2-C}__
-\
-The challenge for Q2-C was that we were unable to distinguish the control from from the treatment group since $10 given in regular ORCA LIFT is not differentiable from $10 control group in RCT. As previously described, we proceed by making an assumption that all individuals who received $10 in their initial load as the control group for Q2-C. Noting its limitations, this is an an attempt to observe the general patterns, magnitude, and direction of the coefficient to make an informed estimation about the effect of the RCT. For this control variable, we then pull any individuals with initial load of $10 from the Initial Load variable under the _Registry_ data.
-\
-
-### Dependent Variable Identification
-
-* __Outcome Variable for \colorbox{purple!50}{Q2-A}__
-\
-For the outcome variable for Q2-A, we are interested in analyzing the _longer-term loading of values and passes_. By definition, the longer-term refers to 6-month period and beyond since the date card was issued or initial load of values/passes were initiated. 
-
-    + There are two different ways to approach whether the longer-term ridership has increased or decreased. One way is by examining _frequency_ of reloading. For this, we utilize the 'DateIssused' variable from the _Registry_ data as well as 'week' variable from _Sales_. Another approach to examining ridership pattern is through values loaded onto the cards. For this, we focus on the variables 'Txn Desc' (i.e. type of product purchased, whether purse/load or pass). 'loadings', and 'Amount' from _Sales_ data.
-
-* __Outcome Variable for \colorbox{pink}{Q2-B}__
-\
-For Q2-B, we are interested in the effects of different levels of incentives on re-enrollment. In the data _Registry_, re-enrollments are identified through the variable 'card_ID' or the anonymized card ID unique to each individual. Re-enrollment is indicated through the number following the dash after the card number. Hence, we separate the number after the dash to push forward with our analysis.
-
-* __Outcome Variable for \colorbox{teal!50}{Q2-C}__
-\
-For Q2-C, the treatment variable here is whether the individual was selected into the Randomized Controlled Trial (RCT) or not to receive the subsidized annual pass. Hence, from the _Registry_ dataset, we pulled the same variables of 'Initial Load' as well as 'Study Card' to extract the independent variable for analysis.
-
-
-### Control Variables
-
-* __From the Question 2 Data__
-
-In addition to these key treatment and outcome variables, there are several control variables provided within the data, attached to each observation. The key variables are the variables 'Age," 'RaceDesc,' and 'LanguageSpoken' from the _Registry_ data. In addition, we also isolated 'CardIssuingAgency' to examine the location of these issuing agencies/offices as a potential instrumental variable to control for any potential endogeneity issue. We also extract the boarding information from _Boarding_ data to represent the number of boarding made on different transit services on a given week.
-
-* __Connecting to ACS Data__
-
-While ACS data was primarily highlighted for the Question 1 of this data challenge, our team thought it would be beneficial to further expand the pool of control variables by connecting Question 2 data to ACS. In the data _Registry_ is FIPS code of home address for each individual. Using this code, we are able to connect the home address of each individual and connect to ACS 5-year aggregate data, which would open up doors for a whole host of control variables of interest.
-
-\newpage
-
-
 ## Data Processing Flow 
 
-\newpage
 
 # References
-
-
-
