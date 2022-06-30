@@ -9,7 +9,7 @@ options(contrasts = rep("contr.treatment", 2),
 
 # Load packages ----
 
-if (!require("pacman", character.only = TRUE)) {
+if (!require("pacman")) {
   install.packages("pacman", dependencies = TRUE)
 }
 
