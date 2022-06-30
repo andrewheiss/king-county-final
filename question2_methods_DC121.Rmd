@@ -8,9 +8,157 @@ author:
   affiliation: Georgia State University & Georgia Institute of Technology
 - name: Meng Ye
   affiliation: Georgia State University
+output: 
+  pdf_document: 
+    latex_engine: xelatex
+    toc: yes
+    toc_depth: 3
+    fig_caption: yes
+bibliography: question2_references.bib
+link-citations: yes
+header-includes:
+    - \usepackage{setspace}
+    - \usepackage{float}
+    - \floatplacement{figure}{H}
 ---
+\onehalfspacing
 
+# Inverse Probability Weighting (IPW)
 
-```{r ssa-logo, fig.align = 'center', out.width = "70%", fig.cap = "Simplified DAG for First Part of Question 2", echo=FALSE}
-knitr::include_graphics(here::here("figures", "dag1.drawio.png"))
+## Directed Acyclic Graphs (DAGs)
+
+In identifying the causal relationship between treatment and outcome, a particular type of causal graph called Directed Acyclic Graphs (DAGs) can become incredibly helpful. DAGs are instrumental in identifying confounding factors that bias the relationship between treatment and outcome variables by opening up backdoors [@pearl_book_2018]. For instance, refer to a simplified, hypothetical version of DAG for the first part of Question 2, asking the following question: what are the causal effects of different levels of incentives on longer-term ridership?
+
+```{r message=FALSE, warning=FALSE, fig.cap="A Simplified DAG for First Part of Q2"}
+library(tidyverse)  # ggplot, dplyr, %>%, and friends
+library(ggdag)  # Make DAGs with ggplot
+library(dagitty)  # Do basic DAG math
+library(broom)  # For converting model output to data frames
+
+node_details <- tribble(
+  ~name, ~label, ~x, ~y,
+  "incentive", "Incentive", 2, 1,
+  "ridership", "Long-term Ridership", 4, 1,
+  "unmeasured", "Unmeasured Confounder", 1, 2,
+  "income", "Income Level", 2.5, 2,
+  "health", "Health Condition", 5, 2,
+  "background", "Background", 2, 3,
+  "edu", "Educational Attainment", 4, 3
+)
+
+node_labels <- node_details$label
+names(node_labels) <- node_details$name
+
+Q2_dag <- dagify(ridership ~ incentive + income + health + 
+                          edu + background,
+                        incentive ~ unmeasured + income + health, 
+                        unmeasured ~ background + edu + income,
+                        income ~ background + edu,
+                        health ~ background + edu,
+                        edu ~ background,
+                        exposure = "incentive",
+                        outcome = "ridership",
+                        latent = "background",
+                        coords = node_details,
+                        labels = node_labels)
+
+# Turn DAG into a tidy data frame for plotting
+Q2_dag_tidy <- Q2_dag %>% 
+  tidy_dagitty() %>%
+  node_status()   # Add column for exposure/outcome/latent
+
+status_colors <- c(exposure = "#F16F6F", outcome = "#00BABA", latent = "grey50")
+
+# Fancier graph
+ggplot(Q2_dag_tidy, aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_edges() +
+  geom_dag_point(aes(color = status)) +
+  geom_dag_label_repel(aes(label = label, fill = status), seed = 1234,
+                       color = "white", fontface = "bold") +
+  scale_color_manual(values = status_colors, na.value = "grey20") +
+  scale_fill_manual(values = status_colors, na.value = "grey20") +
+  guides(color = FALSE, fill = FALSE) + 
+  theme_dag()
+
 ```
+
+## Adjusting for Confounders
+
+Here, we use ggdag/daggity packages to draw a relatively simplified causal model to explain the causality behind longer-term ridership outcomes. For the first part of question 2, we are interested in the direct path between our treatment (different levels of incentives) and outcome (longer-term ridership). However, several potential backdoor confounders could have impacted both the treatment and outcome variables (degree of incentives &rarr; longer-term ridership). 
+
+First, we observe that the outcome variable of longer-term ridership is caused by various factors, ranging from innate backgrounds/demographic characteristics to educational attainment, income level, health conditions, and unmeasured confounders. The arrow in DAG indicates causality- for instance, one's demographic characteristics have a causal impact on the individual's level of educational attainment. Consequently, both the person's income level and health condition are determined by educational attainment and demographic characteristics. Together, these factors generate an unobservable confounder that causes a backdoor in the direct link between the treatment and outcome. Hence, to isolate the causal link between incentive and longer-term ridership, it is necessary to account for the confounders of income level, health condition, and unmeasured confounders in this relatively simplified model, as shown below:
+
+```{r}
+adjustmentSets(Q2_dag)
+```
+
+## Dealing with Unmeasured Confounders
+
+Working with observational causal inference builds on a strong assumption that all unobservable factors that require adjustment are observable and measurable to be processed in the analysis. In an ideal world, we would be able to identify every single one of these backdoor paths *and* measure them to adjust for the biases in the analysis. However, in the real world, we do not have the ways to measure each of these background factors for every individual in our dataset. While some of the demographic information may be omitted for various reasons like privacy concerns, some of these factors also involve unmeasurable factors like reading people's minds to reveal their propensities, desires, likes, and dislikes. 
+
+As represented in the node of "unmeasured confounder," the actual DAG for Q2 is far more complicated and involves various factors that need to be accounted for yet are unmeasurable. For instance, one's gender could have a causal effect on a confounder of drinking behaviors [@wilsnack_gender_2018] which could directly impact one's eligibility for different degrees of incentives [@pollack_substance_2002], yet these patterns are unobservable with our data. Likewise, one's income level could also have yielded another unmeasured confounder of various life opportunities, which could directly impact the level of incentives _as well as_ the values and passes in the longer term. These unmeasured confounders are problematic as they interfere with isolating the causal effects by opening up backdoor paths. The relationship often gets further complicated with the causal links _between_ these unmeasured confounders (for instance, drinking behaviors and opportunities in life), thus making it harder to isolate causality. 
+
+### Using Inverse Probability Weighting (IPW)
+
+Therefore, it requires us to utilize other techniques to adjust for confounders and biases in the model. One of the most cited statistical methods to adjust for these confounders and close the backdoors is inverse probability weighting (IPW). IPW is a popular statistical technique to estimate causal effects by adjusting for the confounders through matching the assignment to treatment [@urdinez_causal_2021]. 
+
+In essence, IPW estimates propensity scores to weight each observation by how distinct they are. For instance, the individuals with a high probability of treatment yet do not receive one, _or_ individuals with a low probability of treatment still receive a higher weight. Under the context of our research question, IPW assigns high weights to the individuals who had the lowest chances of getting these ridership incentives based on their other characteristics but still received one _as well as_ to the people who were the most likely to receive these incentives yet did not receive one.
+
+### Steps to IPW Method
+
+IPW is carried out in a two-step process:
+
+* In the first step, propensity scores are calculated for each observation using the confounders. In the first step, we utilize the observed/measurable confounders to calculate the probability of the person involved with the unobserved confounders, also known as the propensity scores for each individual. One of the most common ways to model these propensity scores is using logistic regression. 
+
+* Once we generate the propensity scores for each individual based on the observed characteristics, we move to the second step of converting these predicted probabilities into weights. This process of incorporating the propensity scores into the causal effect estimation model essentially generates a pseudo-population of observation [@mcgowan_understanding_2019], where some individuals are weighted more than others in estimating the causal effect of the treatment. Mathematically, the following formula is used to estimate the treatment effect in this new weighted population:
+
+
+$$
+\frac{\text{Treatment}}{\text{Propensity}} - \frac{1 - \text{Treatment}}{1 - \text{Propensity}}
+$$
+
+We then use these weights to adjust for the unobservable confounders by re-running the regression model with inverse probability weights. 
+
+
+### Continuous Treatment Variable
+
+While this method of IPW is a valuable tool to adjust for the confounding variables, this particular analysis employs logistic regression and hence is the most ideal for binary treatments. In the case of our research question for Question 2, we are interested in the effects of _different levels of incentives_, which are not binary. The analysis is further complicated as our data also has time aspects, as we define longer-term ridership as six months and beyond. 
+
+Hence, there is a need to modify the IPW model with binary treatments to incorporate the _continuous treatments_. Instead of the earlier formula used to display IPW for binary treatments, we instead use the following formula to incorporate the continuous treatment variable [@naimi_constructing_2014]:
+
+$$
+IPW = \displaystyle \frac{f_{X}(X;\mu_{1},\sigma^{2}_1)}{f_{X \mid C}(X\mid C=c; \mu_{2}, \sigma^{2}_{2})}
+$$
+where:
+
+* $X$ refers to the continuous treatment variable
+* $C$ refers to the cofounding variables
+* Both functions refer stand for a probability density function with a variance of $\sigma^{2}$ mean of $\mu$, whereas...
+* Function in the numerator stands for the probability distribution with the treatment variable only, and
+* The denominator function stands for the probability distribution of treatment _with_the cofounders.
+
+
+
+# Overall Research Design
+
+Based on the background information provided by the KCM, we identified the following three research focuses. We have deconstructed the primary research question into these three so that each focus has a treatment variable and an outcome variable for analysis.
+
+* Q2-A
+	+ Effect of different levels of incentives* on longer-term loading of value and passes
+* Q2-B
+	 + Effect of different levels of incentives* on re-enrollment in ORCA LIFT
+* Q2-C
+	+ Effects of subsidized passes through RCTs on these two outcome variables
+Note that the different levels of incentives here correspond to values such as no value, $10, $15, $20, $30, $50, and various passports. Also, question 2 itself primarily consists of Q2-A and Q2-B. 
+
+Q2-C is formulated to further examine the impact of subsidized passes given through RCTs. This particular question was ruled out from the main body of question 2, given the difficulty with identifying the control group in our data with non-participants getting $10 loaded onto their cards as well. Nonetheless, we attempt to tackle this question with the aim of analyzing the general pattern in the effect of the subsidized passes given through RCTs by treating all individuals with $10 as the controlled group.
+
+
+##  Variable Identification Strategies
+
+## Data Processing Flow 
+
+# References
+
+
+
