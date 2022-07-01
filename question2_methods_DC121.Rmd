@@ -24,8 +24,17 @@ header-includes:
 \onehalfspacing
 \setlength{\parskip}{12pt}
 
+# Data challenge question
 
-# Inverse Probability Weighting (IPW)
+Question 2:How did fare subsidies affect long term enrollment in transit programs?
+
+- Q2~A~: Effect of different levels of incentives on longer-term loading of value and passes
+- Q2~B~: Effect of different levels of incentives on re-enrollment in ORCA LIFT
+- Q2~C~ and Q2~D~: Effects of subsidized passes on loading and enrollment
+
+# Research design: Inverse Probability Weighting (IPW)
+
+We use inverse probability weighting to adjust for confounding in the relationship between incentives and loading and enrollment.
 
 ## Directed Acyclic Graphs (DAGs)
 
@@ -99,7 +108,6 @@ First, we observe that the outcome variable of longer-term ridership is caused b
 ```{r adjust}
 adjustmentSets(Q2_dag)
 ```
-\newpage
 
 ## Dealing with Unmeasured Confounders
 
@@ -113,8 +121,6 @@ As represented in the node of "unmeasured confounder," the actual DAG for Q2 is 
 Therefore, it requires us to utilize other techniques to adjust for confounders and biases in the model. One of the most cited statistical methods to adjust for these confounders and close the backdoors is inverse probability weighting (IPW). IPW is a popular statistical technique to estimate causal effects by adjusting for the confounders through matching the assignment to treatment [@urdinez_causal_2021]. 
 
 In essence, IPW estimates propensity scores to weight each observation by how distinct they are. For instance, the individuals with a high probability of treatment yet do not receive one, _or_ individuals with a low probability of treatment still receive a higher weight. Under the context of our research question, IPW assigns high weights to the individuals who had the lowest chances of getting these ridership incentives based on their other characteristics but still received one _as well as_ to the people who were the most likely to receive these incentives yet did not receive one.
-
-\newpage
 
 ### Steps to IPW Method
 
@@ -149,8 +155,6 @@ where:
 * Function in the numerator stands for the probability distribution with the treatment variable only, and
 * The denominator function stands for the probability distribution of treatment _with_ the confounders.
 
-
-\newpage
 
 # Overall Research Design
 
@@ -207,9 +211,8 @@ In addition to these key treatment and outcome variables, there are several cont
 
 * __Connecting to ACS Data__
 
-While ACS data was primarily highlighted for the Question 1 of this data challenge, our team thought it would be beneficial to further expand the pool of control variables by connecting Question 2 data to ACS. In the data _Registry_ is FIPS code of home address for each individual. Using this code, we are able to connect the home address of each individual and connect to ACS 5-year aggregate data, which would open up doors for a whole host of control variables of interest.
+While ACS data was primarily highlighted for the Question 1 of this data challenge, our team thought it would be beneficial to further expand the pool of control variables by connecting Question 2 data to ACS. In the data _Registry_ is FIPS code of home address for each individual. Using this code, we are able to connect the home address of each individual and connect to ACS 5-year aggregate data, which would open up doors for a whole host of control variables of interest. We use 2019 ACS block group-level data to adjust for demographic and socioeconomic characteristics of riders (see `R/get_census_data.R` for details).
 
-\newpage
 
 ## Data Processing Flow 
 
