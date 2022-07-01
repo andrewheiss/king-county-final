@@ -142,7 +142,7 @@ apc_stops_after <- apc_stop_final %>%
 
 ## Percent white * after_reinstate ----
 model_q1a <- lm(stop_encounter_day_count ~ after_reinstate +
-                  under_change_ratio+
+                  under_change_ratio +
                   bg_pct_white * after_reinstate +
                   bg_pct_white + bg_pct_male + bg_pct_hs + bg_pct_ba + bg_internet + 
                   bg_travel_time_per_capita + bg_pub_trans_per_capita + bg_income + bg_median_rent +
@@ -153,6 +153,9 @@ mfx_model_q1a <- marginaleffects(model_q1a, variables = "after_reinstate",
                                  newdata = datagrid(bg_pct_white = seq(0, 1, 0.01)))
 
 summary(mfx_model_q1a)
+
+saveRDS(model_q1a, here("output", "model_q1a.rds"))
+saveRDS(mfx_model_q1a, here("output", "mfx_model_q1a.rds"))
 
 plot_mfx_model_q1a <- ggplot(mfx_model_q1a, aes(x = bg_pct_white, y = dydx)) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2) +
@@ -170,7 +173,7 @@ ggsave(here("output", "model_q1a_mfx.pdf"), plot_mfx_model_q1a,
 
 ## Education * after_reinstate ----
 model_q1b <- lm(stop_encounter_day_count ~ after_reinstate +
-                  under_change_ratio+
+                  under_change_ratio +
                   bg_pct_ba * after_reinstate +
                   bg_pct_white + bg_pct_male + bg_pct_hs + bg_pct_ba + bg_internet + 
                   bg_travel_time_per_capita + bg_pub_trans_per_capita + bg_income + bg_median_rent +
@@ -181,6 +184,9 @@ mfx_model_q1b <- marginaleffects(model_q1b, variables = "after_reinstate",
                                  newdata = datagrid(bg_pct_ba = seq(0, 1, 0.01)))
 
 summary(mfx_model_q1b)
+
+saveRDS(model_q1b, here("output", "model_q1b.rds"))
+saveRDS(mfx_model_q1b, here("output", "mfx_model_q1b.rds"))
 
 plot_mfx_model_q1b <- ggplot(mfx_model_q1b, aes(x = bg_pct_ba, y = dydx)) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2) +
@@ -198,7 +204,7 @@ ggsave(here("output", "model_q1b_mfx.pdf"), plot_mfx_model_q1b,
 
 # ## Income * after_reinstate ----
 model_q1c <- lm(stop_encounter_day_count ~ after_reinstate +
-                  under_change_ratio+
+                  under_change_ratio +
                   bg_income * after_reinstate +
                   bg_pct_white + bg_pct_male + bg_pct_hs + bg_pct_ba + bg_internet + 
                   bg_travel_time_per_capita + bg_pub_trans_per_capita + bg_income + bg_median_rent +
@@ -209,6 +215,9 @@ mfx_model_q1c <- marginaleffects(model_q1c, variables = "after_reinstate",
                                  newdata = datagrid(bg_income = seq(0, 250000, 1000)))
 
 summary(mfx_model_q1c)
+
+saveRDS(model_q1c, here("output", "model_q1c.rds"))
+saveRDS(mfx_model_q1c, here("output", "mfx_model_q1c.rds"))
 
 plot_mfx_model_q1c <- ggplot(mfx_model_q1c, aes(x = bg_income, y = dydx)) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2) +

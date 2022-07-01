@@ -2,11 +2,151 @@
 title: "Question 1 methods report"
 date: "June 29, 2022"
 author:
-- name: Andrew Heiss
-  affiliation: Georgia State University
-- name: Meng Ye
-  affiliation: Georgia State University
-- name: June Mi Kang
-  affiliation: Georgia State University
+  - Meng Ye^[Georgia State University]
+  - June Mi Jennifer Kang^[Georgia State University & Georgia Institute of Technology]
+  - Andrew Heiss^[Georgia State University]
+output: 
+  pdf_document: 
+    latex_engine: xelatex
+    toc: yes
+    toc_depth: 3
+    fig_caption: yes
+bibliography: bibliography.bib
+link-citations: yes
+header-includes:
+    - \usepackage{setspace}
+    - \usepackage{float}
+    - \floatplacement{figure}{H}
+    - \usepackage{xcolor}
+    - \usepackage{parskip}
 ---
 
+\onehalfspacing
+\setlength{\parskip}{12pt}
+
+# Data challenge question
+
+Question 1: 
+
+- Q1~A~: How did the October 1, 2020 reinstatement of fares affect ridership on King County Metro? 
+- Q1~B~: Did the reinstatement of fares by King County Metro have differential effects on ridership among different socioeconomic status groups?
+
+
+# Research design: Difference-in-differences
+
+We use use difference-in-differences and a battery of other demographic controls to close backdoor paths between treatment (fare reinstatement) and outcome (KCM ridership). We lookat the interaction of both treatment status (binary indicator marking before/after October 1) and specific demographic characteristics to determine differential effects across different demographic groups.
+
+
+# Supplementary data
+
+We use 2019 ACS block group-level data to adjust for demographic and socioeconomic characteristics of riders (see `R/get_census_data.R` for details).
+
+
+# Methods
+
+## Data cleaning 
+
+We choose to summarize the granular APC data at the stop-day level because the locality of the stops can capture the socio-economic status (“SES”) living around that area. Also, daily sum of encounters with the stops by passengers, which is operationalized as the sum of boardings and alightings of all the trips during any particular day would enable comparing the level of ridership before and after the fare reinstatement in an equal footing. Plus, choosing time internal at the level of days also allow us to account for such factors as route changes at any particular day. 
+
+In order to keep the information of route changes which is attached to `trip_id` in the granular data after summarizing at the stop-day level, we derive a variable “under_change_ratio” to calculate the ratio of bus trips passing each stop on a particular that is under temporary change (not the normal route) so as to control for the influence of route changes. Given this data derivation strategy, we decided to include all the APC data starting from 9/1/2020, rather than using a sub data set starting from 9/19/2020. 
+
+We also included the ACS data as explained in the “Supplementary Data” section, which was merged into the stop-day APC data by using the sf data (Stop ID and GEOID) as a bridging dataset. 
+
+The specific data cleaning steps are:
+
+1.	Cleaning the granular APC data 
+
+    - Select variables to use in the analysis and create a set of dummy variables to indicate each observation is at a time frame that is `under_temp_change` (based on the dates under route change corresponding to the particular Trip ID), `after_major_change` (whether the date is on or after 9/19/2020) and `after_reinstate` (whether the data is on for after 10/1/2020). 
+
+2.	Summarizing APC data 
+
+    - Aggregate the data by date and `trip_id` and Sum the total number of aboarding and alighting for all the trips passing by the stop on that day. 
+    - Calculate the `under_change_ratio` based on the total number of trips under route change and total number of trips in each group. 
+    - Keep the date and `trip_id` data in the summarized data set. 
+
+3.	Merging ACS data
+
+    - Extract `stop_id` and `GEOID` from SF data.
+    - Merge `stop_id` and ACS data by the shared column `GEOID`
+    - Merge summarized APC data with ACS data by the column `stop_id` 
+
+
+# Initial findings
+
+```{r load-data-libraries, include=FALSE}
+if (!require("pacman")) {
+  install.packages("pacman", dependencies = TRUE)
+}
+
+pacman::p_load(
+  "tidyverse",
+  "modelsummary",
+  "marginaleffects",
+  "here",
+  install = TRUE
+)
+
+model_q1a <- readRDS(here("output", "model_q1a.rds"))
+mfx_model_q1a <- readRDS(here("output", "mfx_model_q1a.rds"))
+
+model_q1b <- readRDS(here("output", "model_q1b.rds"))
+mfx_model_q1b <- readRDS(here("output", "mfx_model_q1b.rds"))
+
+model_q1c <- readRDS(here("output", "model_q1c.rds"))
+mfx_model_q1c <- readRDS(here("output", "mfx_model_q1c.rds"))
+```
+
+Using a count of boardings and alightings per day as the outcome variable, we run several regression models to estimate the effect of fare reinstatement (binary indicator `after_reinstate` that is true after October 1), following this general format:
+
+```{r eval=FALSE}
+lm(stop_encounter_day_count ~ 
+     after_reinstate +# <- Coefficient of interest
+     {BLOCK_GROUP_DEMOGRAPHIC_CHARACTERISTIC} * after_reinstate +  # <- Coefficient of interest
+     bg_pct_white + bg_pct_male + bg_pct_hs + bg_pct_ba + bg_internet + 
+     bg_travel_time_per_capita + bg_pub_trans_per_capita + bg_income + bg_median_rent +
+     under_change_ratio + day_number)
+```
+
+Because we're working with interaction terms and are interested in the overall effect of `after_reinstate`, we calculate and report the marginal effects of `after_reinstate`, incorporating information from the coefficients for both `after_reinstate` and the corresponding interaction term. We show these marginal effects in the table and figures below:
+
+```{r mfx-summary, echo=FALSE}
+rows <- tribble(
+  ~term, ~m1, ~m2, ~m3,
+  "Interacted demographic variable", "Percent white", "Percent with BA degree", "Income"
+)
+
+attr(rows, "position") <- 1
+
+modelsummary(list("(1)" = mfx_model_q1a, "(2)" = mfx_model_q1b, "(3)" = mfx_model_q1c),
+             stars = TRUE, gof_omit = ".*", add_rows = rows,
+             caption = "**Marginal effect** of fare reinstatement")
+```
+
+```{r mfx1, fig.align = 'center', out.width = "70%", echo=FALSE}
+knitr::include_graphics(here("output", "model_q1a_mfx.pdf"))
+```
+
+```{r mfx2, fig.align = 'center', out.width = "70%", echo=FALSE}
+knitr::include_graphics(here("output", "model_q1b_mfx.pdf"))
+```
+
+```{r mfx3, fig.align = 'center', out.width = "70%", echo=FALSE}
+knitr::include_graphics(here("output", "model_q1c_mfx.pdf"))
+```
+
+General summary:
+
+- Fare reinstatement does not seem to have a direct significant effect on ridership in general
+- When interacted with other demographic variables, the marginal effect of fare reinstatement has some differential results:
+    - When percent white in a census block group is above ≈42%, the coefficient/effect for `after_reinstate` is positive; it’s negative below 42%.
+    - When percent with a BA in a census block group is above ≈40%, the coefficient/effect for `after_reinstate` is positive; it’s negative below 40%.
+    - When average income in a census block group is above \$230,000, the coefficient/effect for `after_reinstate` is negative; it’s positive below \$230,000. This is not statistically significant, however.
+
+Accordingly:
+
+- How did the October 1, 2020 reinstatement of fares affect ridership on King County Metro? There's no clear significant effect 
+- Did the reinstatement of fares by King County Metro have differential effects on ridership among different socio-economic groups? Communities with lower SES have lower ridership after the fare reinstatement
+
+# Policy recommendation(s)
+
+Communities with higher SES (higher white ratio) increases ridership after fare reinstatement, indicating minorities are impacted more by the fare reinstatement during the time of COVID. So we recommend introducing free-loaded credits, free passes for people with lower SES. 
