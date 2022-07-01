@@ -2,19 +2,16 @@
 title: "Question 2 methods report"
 date: "June 29, 2022"
 author:
-- name: Andrew Heiss
-  affiliation: Georgia State University
-- name: June Mi Jennifer Kang
-  affiliation: Georgia State University & Georgia Institute of Technology
-- name: Meng Ye
-  affiliation: Georgia State University
+  - June Mi Jennifer Kang^[Georgia State University & Georgia Institute of Technology]
+  - Meng Ye^[Georgia State University]
+  - Andrew Heiss^[Georgia State University]
 output: 
   pdf_document: 
     latex_engine: xelatex
     toc: yes
     toc_depth: 3
     fig_caption: yes
-bibliography: question2_references.bib
+bibliography: bibliography.bib
 link-citations: yes
 header-includes:
     - \usepackage{setspace}
@@ -225,26 +222,26 @@ One of the key challenges with cleaning the data was how to format the different
 
 ## Results and Discussion
 
-In addition to several descriptive analyses, we performed inverse proability weighting (ipw) method for analyzing the effects of each treatment on the outcome variable.
+In addition to several descriptive analyses, we performed inverse probability weighting (IPW) to analyze the effects of each treatment on the outcome variable.
 
 * __Outcome Variable for \colorbox{purple!50}{Q2-A}__
 \
 ```{r Q2-A-1, fig.align = 'center', out.width = "70%", echo=FALSE}
-knitr::include_graphics("figures/model_q2a_1_comparisons.png")
+knitr::include_graphics("output/model_q2a_1_comparisons.pdf")
 ```
    + We find a puzzling result--when compared to no incentives, each type of incentive causes a decrease in the probability/proportion of reloading 6 months after and beyond.
    
-  + Similarly, our results show that differnet levels of incentives through the program yield unexpected causal impacts on amount loaded:
+  + Similarly, our results show that different levels of incentives through the program yield unexpected causal impacts on amount loaded:
    
    
 ```{r Q2-A-2, fig.align = 'center', out.width = "70%", echo=FALSE}
-knitr::include_graphics("figures/model_q2a_2_comparisons.png")
+knitr::include_graphics("output/model_q2a_2_comparisons.pdf")
 ```
 
    + We see a similar pattern on the effects of different incentive levels on the card loadings. When calculated at the average count of card loadings, we see a reducing pattern compared to no incentive at all:
    
 ```{r Q2-A-3, fig.align = 'center', out.width = "70%", echo=FALSE}
-knitr::include_graphics("figures/model_q2a_3_comparisons.png")
+knitr::include_graphics("output/model_q2a_3_comparisons.pdf")
 ```
 
 * __Outcome Variable for \colorbox{pink}{Q2-B} and \colorbox{teal!50}{Q2-C}__ 
