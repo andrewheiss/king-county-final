@@ -26,7 +26,7 @@ header-includes:
 
 # Data challenge question
 
-Question 2:How did fare subsidies affect long term enrollment in transit programs?
+Question 2: How did fare subsidies affect long term enrollment in transit programs?
 
 - Q2~A~: Effect of different levels of incentives on longer-term loading of value and passes
 - Q2~B~: Effect of different levels of incentives on re-enrollment in ORCA LIFT
@@ -42,10 +42,19 @@ In identifying the causal relationship between treatment and outcome, a particul
 \
 
 ```{r load-libraries, echo=FALSE, message=FALSE, warning=FALSE}
-library(tidyverse)  # ggplot, dplyr, %>%, and friends
-library(ggdag)  # Make DAGs with ggplot
-library(dagitty)  # Do basic DAG math
-library(broom)  # For converting model output to data frames
+if (!require("pacman")) {
+  install.packages("pacman", dependencies = TRUE)
+}
+
+pacman::p_load(
+  "tidyverse",
+  "ggdag",
+  "dagitty",
+  "broom",
+  "here",
+  "knitr",
+  install = TRUE
+)
 ```
 
 
